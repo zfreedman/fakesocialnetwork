@@ -2,13 +2,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const db = require("./config/keys").mongoURI;
+const setupRoutes = require("./serverHelpers/setupRoutes");
 
 const app = express();
 mongoose.connect(db)
   .then(() => console.log("===\nMongoDB connected\n==="))
   .catch(err => console.log(err));
 
-app.get("/", (req, res) => res.send("sup bitch yoink"));
+setupRoutes(app);
 
 const port = process.env.PORT || 5000;
 
