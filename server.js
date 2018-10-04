@@ -1,15 +1,21 @@
 const bodyParser = require("body-parser");
 const express = require("express");
 const mongoose = require("mongoose");
+const passport = require("passport");
 
 const db = require("./config/keys").mongoURI;
 const attachRoutes = require("./serverHelpers/attachRoutes");
 
 // init app
 const app = express();
-// middleware
+// bodyparser middleware
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
+// passport middleware
+app.use(passport.initialize());
+
+// passport config (for jwt strategy)
+require("./config/passport")(passport);
 
 // database connect
 mongoose.connect(db)
