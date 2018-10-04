@@ -1,2 +1,5 @@
 # node moduels
 node_modules/
+
+# private info for configurations
+config/
