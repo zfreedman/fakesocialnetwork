@@ -1,8 +1,10 @@
 const bcrypt = require("bcryptjs");
 const express = require("express");
 const gravatar = require("gravatar");
+const jwt = require("jsonwebtoken");
 const router = express.Router();
 
+const jwtSecret = require("../../config/keys").jwtSecret;
 const User = require("../../models/User");
 
 // @route   GET api/users/test
@@ -27,12 +29,22 @@ router.post("/login", (req, res) => {
 
     // check pass against hashed
     bcrypt.compare(pass, user.pass).then(isMatch => {
-      if (isMatch) {
+      if (!isMatch)
+        return res.status(400).json({ pass: "Pass incorrect" });
+      
         // generate token
-        return res.json({ msg: "success" });
-      }
+      // return res.json({ msg: "success" });
+      const { avatar, id, name } = user;
+      const payload = { avatar, id, name };
 
-      res.status(400).json({ pass: "Password incorrect" });
+      jwt.sign(
+        payload, jwtSecret, { expiresIn: 3600 }, (err, token) => {
+          res.json({
+            success: true,
+            token: `Bearer ${token}`,
+          })
+        }
+      );
     });
   });
 });
