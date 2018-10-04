@@ -12,46 +12,69 @@ router.get("/test", (req, res) => {
   res.json({ msg: "users route works" });
 });
 
+// @route   POST api/users/login
+// @desc    login user returning JWT
+// @access  public
+router.post("/login", (req, res) => {
+  const { email, pass } = req.body;
+
+  // find user by email
+  User.findOne({ email }).then(user => {
+    if (user === null) {
+      // not found
+      return res.status(404).json({ email: "User not found" });
+    }
+
+    // check pass against hashed
+    bcrypt.compare(pass, user.pass).then(isMatch => {
+      if (isMatch) {
+        // generate token
+        return res.json({ msg: "success" });
+      }
+
+      res.status(400).json({ pass: "Password incorrect" });
+    });
+  });
+});
+
 // @route   POST api/users/register
 // @desc    register user
 // @access  public
 router.post("/register", (req, res) => {
+  const { email, name, pass } = req.body;
+
   // check if email exists already
-  User.findOne({ email: req.body.email })
-    .then(user => {
-      if (user !== null) {
-        res.status(400).json({ email: "Email already exists" });
-      } else {
-        const body = req.body;
-        const avatar = gravatar.url(body.email, {
-          // default image
-          d: "mm",
-          // rating (movie ratings)
-          r: "pg",
-          // size
-          s: "200",
-        });
+  User.findOne({ email }).then(user => {
+    if (user !== null) {
+      return res.status(400).json({ email: "Email already exists" });
+    }
+    
+    const avatar = gravatar.url(email, {
+      // default image
+      d: "mm",
+      // rating (movie ratings)
+      r: "pg",
+      // size
+      s: "200",
+    });
 
-        const newUser = new User({
-          avatar,
-          email: body.email,
-          name: body.name,
-          pass: body.pass,
-        });
+    const newUser = new User({
+      avatar,
+      email,
+      name,
+    });
 
-        bcrypt.genSalt(10, (err, salt) => {
-          bcrypt.hash(newUser.pass, salt, (err, hash) => {
-            if (err) throw err;
-            
-            newUser.pass = hash;
-            newUser.save()
-              .then(user => res.json(user))
-              .catch(err => console.log(err));
-          });
-        });
-      }
-    })
-    .catch();
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(pass, salt, (err, hash) => {
+        if (err) throw err;
+        
+        newUser.pass = hash;
+        newUser.save()
+          .then(user => res.json(user))
+          .catch(err => console.log(err));
+      });
+    });
+  });
 });
 
 module.exports = router;
