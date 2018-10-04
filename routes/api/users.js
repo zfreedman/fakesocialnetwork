@@ -6,6 +6,8 @@ const passport = require("passport");
 const router = express.Router();
 
 const jwtSecret = require("../../config/keys").jwtSecret;
+const validateLoginInput = require("../../validation/login");
+const validateRegisterInput = require("../../validation/register");
 const User = require("../../models/User");
 
 // @route   GET api/users/test
@@ -31,19 +33,31 @@ router.get(
 // @desc    login user returning JWT
 // @access  public
 router.post("/login", (req, res) => {
-  const { email, pass } = req.body;
+  const { body } = req;
+
+  // validation
+  const { errors, isValid } = validateLoginInput(body);
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  // data values are valid, check against database
+  const { email, pass } = body;
 
   // find user by email
   User.findOne({ email }).then(user => {
     if (user === null) {
       // not found
-      return res.status(404).json({ email: "User not found" });
+      errors.email = "User not found";
+      return res.status(404).json(errors);
     }
 
     // check pass against hashed
     bcrypt.compare(pass, user.pass).then(isMatch => {
-      if (!isMatch)
-        return res.status(400).json({ pass: "Pass incorrect" });
+      if (!isMatch) {
+        errors.pass = "Password incorrect";
+        return res.status(400).json(errors);
+      }
       
         // generate token
       // return res.json({ msg: "success" });
@@ -66,12 +80,22 @@ router.post("/login", (req, res) => {
 // @desc    register user
 // @access  public
 router.post("/register", (req, res) => {
-  const { email, name, pass } = req.body;
+  const { body } = req;
+  
+  // check validation
+  const { errors, isValid } = validateRegisterInput(body);
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  // data values are valid, check against database
+  const { email, name, pass } = body;
 
   // check if email exists already
   User.findOne({ email }).then(user => {
     if (user !== null) {
-      return res.status(400).json({ email: "Email already exists" });
+      errors.email = "Email already exists";
+      return res.status(400).json(errors);
     }
     
     const avatar = gravatar.url(email, {
