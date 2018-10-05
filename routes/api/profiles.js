@@ -4,7 +4,7 @@ const router = express.Router();
 const isEmpty = require("../../validation/is-empty");
 const ppAuth = require("../passportAuth");
 const Profile = require("../../models/Profile");
-// const User = require("../../models/User");
+const User = require("../../models/User");
 const validateEducationInput = require("../../validation/education");
 const validateExperienceInput = require("../../validation/experience");
 const validateProfileInput = require("../../validation/profile");
@@ -107,7 +107,7 @@ router.post("/current", ppAuth(), (req, res) => {
 
 // @route   POST api/profiles/education/
 // @desc    add an education to the current profile
-// @access  public
+// @access  private
 router.post("/education", ppAuth(), (req, res) => {
   const {
     current, degree, description, fieldOfStudy, from, school, to,
@@ -138,9 +138,31 @@ router.post("/education", ppAuth(), (req, res) => {
   })
 });
 
+// @route   DELETE api/profiles/education/:edu_id
+// @desc    delete an education
+// @access  private
+router.delete("/education/:edu_id", ppAuth(), (req, res) => {
+  const errors = {};
+  
+  Profile.findOne({ user: req.user.id }).then(profile => {
+    const removeIndex = profile.education
+      .map(e => e.id)
+      .indexOf(req.params.edu_id);
+
+    // remove
+    profile.education.splice(removeIndex, 1);
+
+    // save
+    return profile.save().then(profile => res.json(profile));
+  }).catch(err => {
+    errors.deleteUnavailable = "Education cannot be deleted right now";
+    return res.status(404).json(errors);
+  })
+});
+
 // @route   POST api/profiles/experience/
 // @desc    add an experience to the current profile
-// @access  public
+// @access  private
 router.post("/experiences", ppAuth(), (req, res) => {
   const {
     current, company, description, from, location, title, to
@@ -171,6 +193,28 @@ router.post("/experiences", ppAuth(), (req, res) => {
   })
 });
 
+// @route   DELETE api/profiles/experiences/:exp_id
+// @desc    delete an experience
+// @access  private
+router.delete("/experiences/:exp_id", ppAuth(), (req, res) => {
+  const errors = {};
+  
+  Profile.findOne({ user: req.user.id }).then(profile => {
+    const removeIndex = profile.experience
+      .map(e => e.id)
+      .indexOf(req.params.exp_id);
+
+    // remove
+    profile.experience.splice(removeIndex, 1);
+
+    // save
+    return profile.save().then(profile => res.json(profile));
+  }).catch(err => {
+    errors.deleteUnavailable = "Experience cannot be deleted right now";
+    return res.status(404).json(errors);
+  })
+});
+
 // @route   GET api/profiles/handle/:handle
 // @desc    get profile by handle
 // @access  public
@@ -189,6 +233,28 @@ router.get("/handle/:handle", (req, res) => {
       errors.noProfile = "There is no profile for this user ID";
       return res.status(404).json(errors);
     });
+});
+
+// @route   DELETE api/profiles/
+// @desc    delete current user profile
+// @access  private
+router.delete("/", ppAuth(), (req, res) => {
+  const errors = {};
+
+  const userID = req.user.id;
+  Profile.findOneAndRemove({ user: userID }).then(() => {
+    User.findOneAndRemove({ _id: userID }).then(
+      () => res.json({ success: true })
+    ).catch(err => {
+      errors.deleteUnavailable = "User deletion for current user is" +
+        + " unavailable right now";
+        res.status(400).json(errors);
+    })
+  }).catch(err => {
+    errors.deleteUnavailable = "Profile deletion for current user is"
+      + " unavailable right now";
+    res.status(400).json(errors);
+  });
 });
 
 // @route   GET api/profiles/user/:user_id
