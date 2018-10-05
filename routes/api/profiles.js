@@ -5,6 +5,8 @@ const isEmpty = require("../../validation/is-empty");
 const ppAuth = require("../passportAuth");
 const Profile = require("../../models/Profile");
 // const User = require("../../models/User");
+const validateEducationInput = require("../../validation/education");
+const validateExperienceInput = require("../../validation/experience");
 const validateProfileInput = require("../../validation/profile");
 
 // @route   GET api/profiles/test
@@ -101,6 +103,72 @@ router.post("/current", ppAuth(), (req, res) => {
         });
     }
   });
+});
+
+// @route   POST api/profiles/education/
+// @desc    add an education to the current profile
+// @access  public
+router.post("/education", ppAuth(), (req, res) => {
+  const {
+    current, degree, description, fieldOfStudy, from, school, to,
+  } = req.body;
+
+  const newEducation = {
+    current,
+    degree,
+    description,
+    fieldOfStudy,
+    from,
+    school,
+    to,
+  };
+
+  const { errors, isValid } = validateEducationInput(newEducation);
+  if (!isValid) return res.status(400).json(errors);
+
+  Profile.findOne({ user: req.user.id }).then(profile => {
+
+    // Add to education array
+    profile.education.push(newEducation);
+
+    return profile.save().then(profile => res.json(profile));
+  }).catch(err => {
+    errors.noCurrentProfile = "The current user profile doesn't exist";
+    return res.status(404).json(errors);
+  })
+});
+
+// @route   POST api/profiles/experience/
+// @desc    add an experience to the current profile
+// @access  public
+router.post("/experiences", ppAuth(), (req, res) => {
+  const {
+    current, company, description, from, location, title, to
+  } = req.body;
+
+  const newExperience = {
+    current,
+    company,
+    description,
+    from,
+    location,
+    title,
+    to,
+  };
+
+  const { errors, isValid } = validateExperienceInput(newExperience);
+  if (!isValid) return res.status(400).json(errors);
+
+  Profile.findOne({ user: req.user.id }).then(profile => {
+
+    // Add to experience array
+    profile.experience.push(newExperience);
+
+    return profile.save().then(profile => res.json(profile));
+  }).catch(err => {
+    errors.noCurrentProfile = "The current user profile doesn't exist";
+    return res.status(404).json(errors);
+  })
 });
 
 // @route   GET api/profiles/handle/:handle
