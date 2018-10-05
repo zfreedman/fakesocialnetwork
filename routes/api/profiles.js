@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const isEmpty = require("../../validation/is-empty");
 const ppAuth = require("../passportAuth");
 const Profile = require("../../models/Profile");
 // const User = require("../../models/User");
@@ -12,6 +13,25 @@ const validateProfileInput = require("../../validation/profile");
 // router.get("/test", (req, res) => {
 //   res.json({ msg: "profiles route works" });
 // });
+
+// @route   GET api/profiles/all
+// @desc    get all profiles
+// @access  public
+router.get("/all", (req, res) => {
+  const errors = {};
+  
+  Profile.find().populate("user", ["name", "avatar"]).then(profiles => {
+    if (isEmpty(profiles)) {
+      errors.noProfiles = "There are no profiles yet";
+      return res.status(404).json(errors);
+    }
+
+    return res.json(profiles);
+  }).catch(err => {
+    errors.noProfiles = "There are no profiles";
+    return res.status(404).json(errors);
+  });
+});
 
 // @route   GET api/profiles/current
 // @desc    current user profile
@@ -27,7 +47,10 @@ router.get("/current", ppAuth(), (req, res) => {
       }
 
       return res.json(profile);
-    }).catch(err => res.status(404).json(err));
+    }).catch(err => {
+      errors.other = "Please try again"
+      return res.status(404).json(errors);
+    });
 });
 
 // @route   POST api/profiles/current
@@ -78,6 +101,46 @@ router.post("/current", ppAuth(), (req, res) => {
         });
     }
   });
+});
+
+// @route   GET api/profiles/handle/:handle
+// @desc    get profile by handle
+// @access  public
+router.get("/handle/:handle", (req, res) => {
+  const errors = {};
+  const { handle } = req.params;
+  Profile.findOne({ handle, }).populate("user", ["name", "avatar"])
+    .then(profile => {
+      if (profile === null) {
+        errors.noProfile = "There is no profile for this handle";
+        return res.status(404).json(errors);
+      }
+
+      return res.json(profile);
+    }).catch(err => {
+      errors.noProfile = "There is no profile for this user ID";
+      return res.status(404).json(errors);
+    });
+});
+
+// @route   GET api/profiles/user/:user_id
+// @desc    get profile by user id
+// @access  public
+router.get("/user/:user_id", (req, res) => {
+  const errors = {};
+
+  Profile.findOne({ user: req.params.user_id })
+    .populate("user", ["name", "avatar"]).then(profile => {
+      if (profile === null) {
+        errors.noProfile = "There is no profile for this user ID";
+        return res.status(404).json(errors);
+      }
+
+      return res.json(profile);
+    }).catch(err => {
+      errors.noProfile = "There is no profile for this user ID";
+      return res.status(404).json(errors);
+    });
 });
 
 
