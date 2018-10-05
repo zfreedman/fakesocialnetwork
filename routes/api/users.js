@@ -2,32 +2,28 @@ const bcrypt = require("bcryptjs");
 const express = require("express");
 const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
-const passport = require("passport");
 const router = express.Router();
 
 const jwtSecret = require("../../config/keys").jwtSecret;
+const ppAuth = require("../passportAuth");
+const User = require("../../models/User");
 const validateLoginInput = require("../../validation/login");
 const validateRegisterInput = require("../../validation/register");
-const User = require("../../models/User");
 
 // @route   GET api/users/test
 // @desc    tests post route
 // @access  public
-router.get("/test", (req, res) => {
-  res.json({ msg: "users route works" });
-});
+// router.get("/test", (req, res) => {
+//   res.json({ msg: "users route works" });
+// });
 
 // @route   GET api/users/current
 // @desc    current user profile
 // @access  private
-router.get(
-  "/current",
-  passport.authenticate("jwt", { session: false }),
-  (req, res) => {
-    const { avatar, email, id, name, } = req.user;
-    res.json({ avatar, email, id, name });
-  }
-);
+router.get("/current", ppAuth(), (req, res) => {
+  const { avatar, email, id, name, } = req.user;
+  res.json({ avatar, email, id, name });
+});
 
 // @route   POST api/users/login
 // @desc    login user returning JWT
@@ -37,9 +33,7 @@ router.post("/login", (req, res) => {
 
   // validation
   const { errors, isValid } = validateLoginInput(body);
-  if (!isValid) {
-    return res.status(400).json(errors);
-  }
+  if (!isValid) return res.status(400).json(errors);
 
   // data values are valid, check against database
   const { email, pass } = body;
@@ -62,10 +56,10 @@ router.post("/login", (req, res) => {
         // generate token
       // return res.json({ msg: "success" });
       const { avatar, id, name } = user;
-      const payload = { avatar, id, name };
+      const userPayload = { avatar, id, name };
 
       jwt.sign(
-        payload, jwtSecret, { expiresIn: 3600 }, (err, token) => {
+        userPayload, jwtSecret, { expiresIn: 3600 }, (err, token) => {
           res.json({
             success: true,
             token: `Bearer ${token}`,
@@ -84,9 +78,7 @@ router.post("/register", (req, res) => {
   
   // check validation
   const { errors, isValid } = validateRegisterInput(body);
-  if (!isValid) {
-    return res.status(400).json(errors);
-  }
+  if (!isValid) return res.status(400).json(errors);
 
   // data values are valid, check against database
   const { email, name, pass } = body;
