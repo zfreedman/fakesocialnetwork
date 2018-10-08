@@ -12,17 +12,17 @@ module.exports = data => {
   const required = [ "text" ];
   mapRequiredToEmpty(required, data);
   const { text } = data;
-  
-  const postLengths = [10, 300];
-  if (!Validator.isLength(
-    text, { min: postLengths[0], max: postLengths[1] }
-  )) {
-    errors.text = `Post must be between ${postLengths[0]} and`
-      + ` ${postLengths[1]} characters`;
-  }
 
   handleRequiredErrors(required, data, errors);
-
+  
+  const commentLengths = [2, 300];
+  if (!Validator.isLength(
+    text, { min: commentLengths[0], max: commentLengths[1] }
+  )) {
+    errors.text = `Comment must be between ${commentLengths[0]} and`
+      + ` ${commentLengths[1]} characters`;
+  }
+  console.log(errors);
   return {
     errors,
     isValid: isEmpty(errors)
