@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { Component } from 'react';
 
 class Register extends Component {
@@ -93,8 +94,14 @@ class Register extends Component {
       pass2
     };
 
-
-    console.log(newUser);
+    axios.post("/api/users/register", newUser).then(result => {
+      console.log(result);
+    })
+    .catch(err => {
+      // console.log(err);
+      console.log(err.response);
+    });
+    // console.log(newUser);
   };
 }
 
