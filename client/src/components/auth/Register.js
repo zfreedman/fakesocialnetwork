@@ -1,9 +1,11 @@
 import axios from "axios";
 import classnames from "classnames";
+import { compose } from "redux";
 import { connect } from "react-redux";
 import propTypes from "prop-types";
 import React, { Component } from 'react';
 import { registerUser } from "../../actions/auth";
+import { withRouter } from "react-router-dom";
 
 class Register extends Component {
   constructor(props) {
@@ -11,17 +13,15 @@ class Register extends Component {
 
     this.state = {
       email: "",
+      errors: {},
       name: "",
       pass: "",
       pass2: "",
-      errors: {},
     };
   }
 
   render() {
     const { errors } = this.state;
-
-    const { user } = this.props.auth;
 
     return (
       <div className="register">
@@ -154,6 +154,19 @@ class Register extends Component {
     )
   }
 
+  // UNSAFE_componentWillReceiveProps (nextProps) {
+  //   console.log(nextProps);
+  //   if (nextProps.errors !== undefined) {
+  //     this.setState({ errors: nextProps.errors });
+  //   }
+  // }
+  static getDerivedStateFromProps (nextProps) {
+    // console.log(nextProps);
+    if (nextProps.errors === undefined) return;
+
+    return { errors: nextProps.errors };
+  }
+
   onChange = e => {
     this.setState({ [e.target.name]: e.target.value });
   };
@@ -169,31 +182,33 @@ class Register extends Component {
       pass2
     };
     
-    return this.props.registerUser(newUser);
-
-    axios.post("/api/users/register", newUser).then(result => {
-      console.log(result);
-    })
-    .catch(err => {
-      // console.log(err);
-      // console.log(err.response);
-      this.setState({ errors: err.response.data });
-    });
+    const { history, registerUser } = this.props;
+    
+    return registerUser(newUser, history);
     // console.log(newUser);
   };
 }
 
 Register.propTypes = {
   auth: propTypes.object.isRequired,
+  errors: propTypes.object.isRequired,
   registerUser: propTypes.func.isRequired,
 };
 
-const mapStateToProps = ({ auth }) => ({
-  auth,
-});
+const mapStateToProps = state => {
+  const { auth, errors } = state;
+
+  return {
+    auth,
+    errors,
+  };
+};
 
 const mapDispatchToProps = {
   registerUser,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Register);
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withRouter,
+)(Register);
