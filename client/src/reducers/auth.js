@@ -1,5 +1,7 @@
+import isEmpty from "../validation/isEmpty";
+
 import {
-  registerUser,
+  SET_USER,
 } from "../actions/auth";
 
 const initialState = {
@@ -8,7 +10,15 @@ const initialState = {
 };
 
 export default (state = initialState, action) => {
-  switch (action.type) {
+  const { payload, type } = action;
+  
+  switch (type) {
+    case SET_USER:
+      return {
+        ...state,
+        isAuthenticated: !isEmpty(payload),
+        user: payload,
+      };
 
     default: return state;
   }
