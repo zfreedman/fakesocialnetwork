@@ -43,6 +43,7 @@ export const loginUser = user => dispatch => {
   })
 
   .catch(err => {
+    console.log(err);
     dispatch(getErrors(err.response.data));
   });
 };
