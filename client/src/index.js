@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 
 import './index.css';
 import App from './App';
+import { logoutUser } from "./actions/auth";
 import setAuthToken from "./utils/setAuthToken";
 import { setUser } from "./actions/auth";
 import store from "./store";
@@ -21,6 +22,18 @@ if (jwtToken !== undefined) {
 
   // set user and isAuthenticated
   store.dispatch(setUser(decoded));
+
+  // check for expired token
+  const currentTime = Date.now() / 1000;
+  if (decoded.exp < currentTime)
+  {
+    // logout
+    store.dispatch(logoutUser);
+    // TODO: clear current profile
+
+    // redirect to login
+    window.location.href = "/login";
+  }
 }
 
 ReactDOM.render(

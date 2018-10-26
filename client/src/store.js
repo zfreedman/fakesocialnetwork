@@ -9,7 +9,7 @@ const preloadedState = {};
 // https://redux.js.org/api/createstore
 const store = createStore(
   reducers,
-  preloadedState,
+  // preloadedState,
   middleware
 );
 

@@ -153,6 +153,12 @@ class Register extends Component {
       </div>
     )
   }
+  
+  componentDidMount () {
+    if (this.props.auth.isAuthenticated) {
+      this.props.history.push("/dashboard");
+    }
+  }
 
   // UNSAFE_componentWillReceiveProps (nextProps) {
   //   console.log(nextProps);
