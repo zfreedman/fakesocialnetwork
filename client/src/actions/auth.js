@@ -64,5 +64,7 @@ export const logoutUser = () => dispatch => {
   setAuthToken(false);
   // set current user to {} which should update isAuthenticated to false
   dispatch(setUser({}));
+  // redirect to splash
+  window.location.href = "/";
 };
 

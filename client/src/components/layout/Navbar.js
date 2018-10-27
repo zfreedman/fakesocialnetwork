@@ -25,9 +25,11 @@ class Navbar extends Component {
                 marginRight: "5px",
                 width: "25px",
               }}
-              title="You musth ave a Gravatar connected to your email to display an image"
+              title="You must ave a Gravatar connected to your email to display an image"
             />
 
+            {" "}
+            
             Logout
           </a>
         </li>
