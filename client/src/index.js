@@ -28,7 +28,7 @@ if (jwtToken !== undefined) {
   if (decoded.exp < currentTime)
   {
     // logout
-    store.dispatch(logoutUser);
+    store.dispatch(logoutUser());
     // TODO: clear current profile
 
     // redirect to login
